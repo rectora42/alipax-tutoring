@@ -1,0 +1,126 @@
+---
+#title: "\\fontsize{14pt}{3pt}\\selectfont \\textbf\\textit{{Invoice}}"
+title: 'Invoice `r params$invoice_num`'
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+    toc: false
+    keep_tex: true
+mainfont: Times New Roman
+fontsize: 11pt
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{flushright}\huge\bfseries}
+  - \posttitle{\end{flushright}} 
+  - \predate{\begin{flushright}}
+  - \postdate{\end{flushright}} 
+  - \usepackage{fancyhdr}
+  - \usepackage{lipsum}
+  - \usepackage{lmodern}
+  - \pagestyle{fancy}
+  - \addtolength{\headheight}{\baselineskip}
+  - \setlength{\headheight}{27.59222pt}
+#  - \setlength{\footskip}{30pt}
+  - \renewcommand{\footrulewidth}{0.4pt}
+  - \fancyhead[L]{"Invoice Number:`r params$invoice_num`"\\ "Invoice Date:"}
+  - \fancyhead[R]{"Alipax Tutoring\\ 140 Lavender Ln \\ Buda, TX 76810"}
+  - \fancyfoot[L]{}
+  - \fancyfoot[C]{}
+  - \fancyfoot[R]{}
+params: 
+  student_id:  " "
+  resp_party: " "
+  stu_street: " "
+  stu_city: " "
+  invoice_num: " "
+---  
+
+# Alipax Tutoring Services  
+<!-- \begin{tabular}{l|r} -->
+BILL TO:  \hfill PAYABLE TO: 
+
+`r params$resp_party` \hfill Alison Rector \linebreak
+`r params$stu_street`  \hfill 140 Lavender Ln \linebreak
+`r params$stu_city` \hfill Buda, TX 78610 \linebreak  
+\hrule
+<!-- \hline -->
+<!-- \end{tabular} -->
+<!-- ::::::  -->
+<!-- :::   -->
+<!-- \begin{flushleft} -->
+<!-- \begin{tabular} -->
+<!-- BILL TO:\\  -->
+<!-- `r params$student_id` \\  -->
+<!-- `r params$stu_street` \\ -->
+<!-- `r params$stu_city`  -->
+<!-- \end{tabular} -->
+<!-- \end{flushleft} -->
+<!-- ::: -->
+<!-- \begin{flushright} -->
+<!-- \begin{tabular} -->
+<!-- PAYABLE TO:\\  -->
+<!-- Alison Rector \\  -->
+<!-- 140 Lavender Ln\\ -->
+<!-- Buda, TX 78610 \\ -->
+<!-- \end{tabular} -->
+<!-- \end{flushright} -->
+<!-- ::: -->
+<!-- :::::: -->
+
+<!-- \hline   -->
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, tab.cap.pre="")
+library(tidyr)
+library(dplyr)
+library(tibble)
+library(lubridate)
+library(tidyverse)
+library(readxl)
+library(flextable)
+library(formattable)
+library(janitor)
+```
+
+```{r education}
+
+August_sessions<-read_xlsx("TutoringSessions_Fall2022.xlsx", sheet="2022-August")
+my_student= params$student_id
+
+
+STUDENT_SESSIONS<-August_sessions%>%
+      filter(student_id==my_student)%>%
+      dplyr::select(Date, Student, Details, Total)%>%
+      arrange(Date)
+
+# STUDENT_SESSIONS$Rate <- currency(STUDENT_SESSIONS$Rate, digits = 0L)
+STUDENT_SESSIONS$Total <- currency(STUDENT_SESSIONS$Total, digits = 0L)
+STUDENT_SESSIONS$Date  <- format(STUDENT_SESSIONS$Date, "%B %d,  %Y")
+STUDENT_SESSIONS<-STUDENT_SESSIONS%>%
+      adorn_totals("row")
+bottom<-nrow(STUDENT_SESSIONS)
+above_bottom<-bottom-1
+
+flextable(STUDENT_SESSIONS)%>%
+  padding(padding = 0, part = "all") %>%
+  valign(valign="top", part="header")%>%
+   #autofit()%>%
+  #fit_to_width(6.5)%>%
+   width(j = 1:2,
+          width = 1.5) %>%
+    width(j = 3,
+          width = 3)%>%
+    width(j =4 ,
+          width = .5)%>%
+  fontsize(size=10, part="header")%>%
+  fontsize(size=10)%>%
+  add_header_row(top=TRUE, values = "Invoice Summary", colwidths = 4)%>%
+  bold(i = 1:2, j = NULL, bold = TRUE, part = "header")%>%
+  bold(i = bottom, j = NULL, bold = TRUE, part = "body")%>%
+  hline( i = above_bottom, j = NULL, border = NULL, part = "body")
+```
+
+\linebreak  
+
+Thank you for your 
